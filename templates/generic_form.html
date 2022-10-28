@@ -34,6 +34,13 @@ and a footer (from the "additional_form_links" block)
   {% endcomment %}
   {% if form_header %}
     <h1 class="text-center col-12">{{ form_header }}</h1>
+    {% if form_description %}
+    <span class="text-center col-12">{{ form_description }}</span>
+    {% else %}
+    {% block form_description %}
+    {% endblock%}
+    {% endif %}
+
   {% else %}
     {% block form_header %}{% endblock %}
   {% endif %}

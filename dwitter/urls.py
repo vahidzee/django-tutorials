@@ -43,6 +43,7 @@ urlpatterns = [
     # user urls
     path("accounts/", include("django.contrib.auth.urls")),  # ADDITION: include the default auth urls
     path("accounts/signup/", accounts_views.SingUpFormView.as_view(), name="signup"),  # ADDITION: add the signup url
-    path("", tweets_views.index, name="index"),  # ADDITION: add the index url
+    path("", tweets_views.TweetsListView.as_view(), name="index"),  # ADDITION: add the index url
+    path("tweet/", tweets_views.TweetCreateView.as_view(), name="tweet"),  # ADDITION: add the tweet url
 ]
 

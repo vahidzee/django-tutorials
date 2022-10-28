@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm
 
-# We wish to create a signup form that asks for the user's username, firstname, lastname, email, and password
+# First Session: We wish to create a signup form that asks for the user's username, firstname, lastname, email, and password
 # Going through django's documentation, we see that django.contrib.auth provides a set of stock forms
 # one of which is UserCreationForm https://docs.djangoproject.com/en/4.1/topics/auth/default/#django.contrib.auth.forms.UserCreationForm
 # This form, already has the username, and password fields, and implements the logic to validate the data

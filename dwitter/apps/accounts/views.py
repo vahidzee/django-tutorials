@@ -4,7 +4,7 @@ from .forms import SignupForm
 from django.urls import reverse_lazy
 
 # We wish to create a signup view that shows a signup form upon GET requests and
-# recieves a POST request with the user data and after validating the data, creates a new user 
+# recieves a POST request with the user data and after validating the data, creates a new user
 # and redirects the user to the login page
 # We can do this by manually creating a view (functional/Class based) to show a hardcoded HTML form
 # and then manually reading the data from the POST request and validating it and creating a new user
@@ -40,16 +40,20 @@ from django.urls import reverse_lazy
 
 class SingUpFormView(FormView):
     # these class attributes are required by the FormView class (and automatcally handled by it)
-    template_name = "generic_form.html" 
+    template_name = "generic_form.html"
     form_class = SignupForm
     success_url = reverse_lazy("login")
 
-    def render_to_response(self, context, **response_kwargs): # this function is called when the view is called with a GET request
+    def render_to_response(
+        self, context, **response_kwargs
+    ):  # this function is called when the view is called with a GET request
         # we can override this method to add- some extra context
-        # our generic_form.html template looks for the "form_header" variable 
+        # our generic_form.html template looks for the "form_header" variable
         # and if present, it will render it as the header of the form
         # therefore to have a better looking form, and not just a generic render of the form fields
         # we can add a header to the form
-        context = self.get_context_data(**context) # get the context data from the form view
+        context = self.get_context_data(**context)  # get the context data from the form view
         context["form_header"] = "Create an account!"
-        return FormView.render_to_response(self, context, **response_kwargs) # render the template with the updated context
+        return FormView.render_to_response(
+            self, context, **response_kwargs
+        )  # render the template with the updated context

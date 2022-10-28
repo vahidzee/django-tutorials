@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # Local apps
     # ADD local apps here (like in the future we will add 'tweets')
     "dwitter.apps.accounts",  # ADDITION
+    "dwitter.apps.tweets",  # ADDITION
 ]
 
 LOGIN_REDIRECT_URL = '/' # ADDITION: redirect to home page after login
