@@ -21,3 +21,25 @@ class SignupForm(UserCreationForm):
     # Now we have a form which has the username, password1, password2, first_name, last_name, and email fields
     # and it implements the logic to validate the data and create a user
     # So we can use this form in our signup view to create a new user (see dwitter/apps/accounts/views.py)
+
+    # ADDITION: override the save method to save the first_name, last_name, and email fields
+    def save(self, commit=True):
+        # We override the save method to save the first_name, last_name, and email fields
+        # We do this because the UserCreationForm doesn't save these fields 
+        # by default and doesn't account for field additions (i.e it doesn't know about the first_name, last_name, and email fields)
+
+        # We can do this by calling the save method of the parent class (UserCreationForm) first (with commit=False) 
+        # which creates a user instance without saving it and sets its username and password 
+        # then we can set the instance's first_name, last_name, and email fields manually and then save it
+        # if commit (the argument to this method) is True
+        
+        user = super().save(commit=False)
+        # self.cleaned_data is a dictionary of the form data that has been cleaned and validated
+        # we can access the first_name, last_name,
+        # and email fields from this dictionary and set them on the user instance
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user

@@ -43,7 +43,7 @@ class TweetForm(forms.ModelForm):
         # ADDITION: using forms.HiddenInput try hiding the reply_to field, and use forms.Textarea to render the text field as a text area
         widgets = {
             "text": forms.Textarea(attrs={"rows": 3}),
-            "reply_to": forms.HiddenInput()
+            "reply_to": forms.HiddenInput(),
         }  # We use the HiddenInput widget to render the reply_to field as a hidden field in the form
 
         # We can also specify the labels for the fields by providing a labels dictionary to the meta class
@@ -53,3 +53,8 @@ class TweetForm(forms.ModelForm):
         labels = {
             "reply_to": "",  # we want to hide the label for the reply_to field
         }
+
+    # It is important to note that in order to save the data from the form, we also need to have a view that
+    # adds the user that is posting the tweet to the form data
+    # we can do this by overriding the form_valid method of 
+    # the view that handles the form (see dwitter/apps/tweets/views.py)

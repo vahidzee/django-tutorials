@@ -124,3 +124,26 @@ class TweetCreateView(FormView):
             context["form_header"] = "Post a tweet"
             context["form_description"] = "Post a tweet to Dwitter"
         return context
+
+    # ADDITION: override the form_valid method to handle the form submission (i.e. create a new tweet)
+    # form_valid gets called when the form is submitted and is valid therefore if 
+    # you wish to create a new tweet on succsessful form submission you should do it here
+    # In the generic form view, if the underlying form handles save() correctly,
+    # it automatically gets called in form_valid, but because we are using a custom form which does not handle save() correctly,
+    # (i.e. it does not save the tweet to the database, because it doesn't have the user field), we need to call save() manually in form_valid
+    # see https://docs.djangoproject.com/en/4.1/topics/class-based-views/generic-editing/#formview-objects
+
+
+    def form_valid(self, form):
+        # we override the form_valid method to handle the form submission
+        # we get the form data from the form parameter
+        # we create a new tweet object using the form data
+        # we set the user of the tweet to the current user
+        # we save the tweet to the database
+        # we redirect the user to the index page
+        # ADDITION: create a new tweet object using the form data, set the user of the tweet to the current user, and 
+        # save the tweet to the database and redirect the user to the index page
+        tweet = form.save(commit=False)
+        tweet.user = self.request.user # set the user of the tweet to the current user
+        tweet.save()
+        return super().form_valid(form)

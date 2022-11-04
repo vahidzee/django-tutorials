@@ -57,3 +57,17 @@ class SingUpFormView(FormView):
         return FormView.render_to_response(
             self, context, **response_kwargs
         )  # render the template with the updated context
+
+    # ADDITION: save the user to the database (see dwitter/apps/accounts/forms.py for the save method)
+    # you just need to call the save method on the form object with the commit=True argument
+    def form_valid(self, form):
+        # form_valid function is called when the view is called with a POST request and the form is valid
+        # we can override this method to do some extra logic (e.g. saving the form to the database)
+
+        # in this case, we want to create a new user using the data from the form
+        # and then redirect the user to the login page (which we defined in the success_url attribute,
+        # and is handled by the FormView.form_valid method), so we just need to call the save method
+        # on the form object with the commit=True argument
+        user = form.save(commit=True)
+        # we then call the form_valid method of the FormView class to handle the rest (redirecting the user)
+        return super().form_valid(form)
