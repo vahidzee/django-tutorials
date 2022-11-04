@@ -135,3 +135,5 @@ media/
 static/
 
 **/migrations/*.py
+.DS_Store
+
