@@ -1,0 +1,12 @@
+{% extends "generic_form.html" %}
+
+{% block form_header %}
+  <h1 class="text-center col-12">Sign in to your account!</h1>
+{% endblock %}
+
+{% block additional_form_links %}
+<div class="col-12 text-center">
+  Forgot your password? <a href="{% url 'password_reset' %}">Click Here</a>.<br>
+  Don't have an account <a href="{% url 'signup' %}">Register Here</a>!
+</div>
+{% endblock %}

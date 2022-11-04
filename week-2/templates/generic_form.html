@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load widget_tweaks %} {% comment %} this command loads up third party tools 
+"widget_tweaks" is a third party tool that brings django_template filters which allow us to modify the html rendering of variables
+see https://github.com/jazzband/django-widget-tweaks for more info
+{% endcomment %}
+
+{% comment %} 
+this template essentially renders a form that is passed to it (assuming the existance of a "form" and "action" context variables)
+In essence, there is no actual need to iterate over the form fields or to manually look them up by name to render them
+a simple {{ form }} or {{ form.as_p }} will render the entire form fields (without the submit button and the csrf token)
+therefore, instead of the following code you could have simply used:
+
+<form action="{{ action }}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+But the following code, tries to manually go through different form related fields and variables to style them in a more neat way!
+
+In addition, to make this template more practical, it also renders a header (either from the context variable "form_header" or the "form_header")
+and a footer (from the "additional_form_links" block)
+
+{% endcomment %}
+
+{% block page_content %}
+<div class="text-center mb-5 row">
+  {% comment %} 
+  Generate a form header either from the context variable "form_header" or the "form_header" block
+  form_header block will be provided by the template that extends this template, and the context variable "form_header" will be provided by the view that renders this template
+  (see https://docs.djangoproject.com/en/3.0/ref/templates/language/#template-inheritance for more info)
+
+  To see how this functionallity is used in the project, see the signup view in the accounts app (dwitter/accounts/views.py)
+  {% endcomment %}
+  {% if form_header %}
+    <h1 class="text-center col-12">{{ form_header }}</h1>
+    {% if form_description %}
+    <span class="text-center col-12">{{ form_description }}</span>
+    {% else %}
+    {% block form_description %}
+    {% endblock%}
+    {% endif %}
+
+  {% else %}
+    {% block form_header %}{% endblock %}
+  {% endif %}
+
+  {% if form.errors %}
+  {% for error in form.errors.values %}
+    <span class="text-danger p-2 text-center col-12">{{ error }}</span><br>
+  {% endfor %}
+  {% endif %}
+</div>
+<form method="post" action="{{ action }}" class="g-3 ">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="col-md-12 mb-3 ms-a">
+      {% if field.label_tag %}
+      <label for="login_form-field-{{forloop.counter0}}" class="form-label">{{field.label_tag}}</label>
+      {% endif %}
+      {{field | add_class:"form-control"}}
+      {% if field.help_text %}
+        <div id="{{field.tag}}Help" class="form-text text-secondary">{{ field.help_text }}</div>
+      {% endif %}
+      {% if field.errors %}
+        <div class="text-danger">
+          {% for error in field.errors.values %}
+            {{error}}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+  <div class="col-12 text-center mb-4">
+      <button type="submit"  value="submit" class="btn btn-primary">Go!</button>
+  </div>
+  
+  {% comment %} 
+  Like the form_header, the additional_form_links block will be provided by the template that extends this template
+  see the templates/registration/login.html for an example
+  {% endcomment %}
+  {% block additional_form_links%}{% endblock %}
+</form>
+{% endblock %}

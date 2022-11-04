@@ -39,15 +39,24 @@ from django.urls import reverse_lazy
 
 
 class SingUpFormView(FormView):
+    # these class attributes are required by the FormView class (and automatcally handled by it)
+    template_name = "generic_form.html"
+    form_class = SignupForm
+    success_url = reverse_lazy("login")
 
-    template_name = "generic_form.html"  # the template to use to render the form
-    form_class = SignupForm  # the form to use
-
-    # ADDITION: add the success_url attribute to the class
-    # this attribute is used by the FormView to redirect the user after the form is successfully submitted
-    # we can use the reverse_lazy function to get the url of the login view
-    # and use it as the success_url
-    # look up the name of the login view "login" by calling reverse_lazy("login") and use it as the success_url
+    def render_to_response(
+        self, context, **response_kwargs
+    ):  # this function is called when the view is called with a GET request
+        # we can override this method to add- some extra context
+        # our generic_form.html template looks for the "form_header" variable
+        # and if present, it will render it as the header of the form
+        # therefore to have a better looking form, and not just a generic render of the form fields
+        # we can add a header to the form
+        context = self.get_context_data(**context)  # get the context data from the form view
+        context["form_header"] = "Create an account!"
+        return FormView.render_to_response(
+            self, context, **response_kwargs
+        )  # render the template with the updated context
 
     # ADDITION: save the user to the database (see dwitter/apps/accounts/forms.py for the save method)
     # you just need to call the save method on the form object with the commit=True argument
@@ -59,7 +68,6 @@ class SingUpFormView(FormView):
         # and then redirect the user to the login page (which we defined in the success_url attribute,
         # and is handled by the FormView.form_valid method), so we just need to call the save method
         # on the form object with the commit=True argument
-        # ADDITION: save the user to the database  by calling form.save(commit=True)
-
+        user = form.save(commit=True)
         # we then call the form_valid method of the FormView class to handle the rest (redirecting the user)
         return super().form_valid(form)

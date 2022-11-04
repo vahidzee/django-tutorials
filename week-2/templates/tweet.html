@@ -1,0 +1,28 @@
+<div  class="col-12 card my-1">
+    <div class="card-body p-1">
+        <div class="mt-3">
+            {{ tweet.user.username }} 
+            {% if tweet.user.first_name or tweet.user.last_name %}
+            <span class="small"> ({{ tweet.user.first_name }} {{ tweet.user.last_name }})</span>
+            {% endif %}
+            <span class="list-inline-item mx-2 my-0 text-muted small">
+                {{ tweet.uploaded_at | timesince }} ago
+            </span>
+            <div class="float-right">
+                <a class="btn btn-sm btn-outline-primary" href="{% url "tweet" %}?reply_to={{tweet.id}}">
+                    Reply
+                </a>
+            </div>
+        </div>
+        <div class="pb-1">
+            {{ tweet.text }}
+        </div>
+        {% if tweet.replies %}
+        <div class="ms-2">
+        {% for reply in tweet.replies.all %}
+        {% include "tweet.html" with tweet=reply %}
+        {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
