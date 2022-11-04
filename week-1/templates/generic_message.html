@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% comment %} 
+render the content either off of the context variable "content", or recieve it in the form of a block
+provided by the template that extends this template
+
+* you can extend this template in any of the templates/registration/logout.html, password_reset_done.html templates 
+{% endcomment %} 
+{% block page_content %}
+  {% if content %}
+    {{content}}
+  {% else %}
+  {% block content%} {%endblock%}
+  {% endif %}
+{% endblock %}

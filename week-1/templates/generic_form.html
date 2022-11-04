@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+
+{% block page_content %}
+{% comment %} 
+this template essentially should render a form that is passed to it (assuming the existance of a "form" and "action" context variables)
+In essence, there is no actual need to iterate over the form fields or to manually look them up by name to render them
+a simple {{ form }} or {{ form.as_p }} will render the entire form fields (without the submit button and the csrf token)
+therefore the following code could be used as a template for any form:
+
+<form action="{{ action }}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+use these codes here, or implement your own form rendering logic here (extend this template in other templates)
+{% endcomment %}
+{% endblock %}

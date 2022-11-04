@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+{% for tweet in tweets %}
+    {% include "tweet.html" with tweet=tweet %}
+{% endfor %}
+<div class="row small m-1">Page {{ page_obj.number }} of {{ paginator.num_pages }}</div>
+<div class="row p-1">
+{% if is_paginated %}
+  {% if page_obj.has_previous %}
+  <a href="?page=1" class="btn btn-primary m-1 small">First</a>
+    {% if page_obj.previous_page_number != 1 %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-primary m-1 small">Previous</a>
+    {% endif %}
+  {% endif %}
+
+  {% if page_obj.has_next %}
+    {% if page_obj.next_page_number != paginator.num_pages %}
+      <a class="btn btn-primary m-1 small" href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %} <a class="btn btn-primary m-1 small" href="?page={{ paginator.num_pages }}">Last</a>
+  {% endif %}
+{% endif %}
+
+</div>
+
+{% endblock %}
