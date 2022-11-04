@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3rd party apps
-    # ADD 3rd party apps here (like in the future we will add 'rest_framework')
-    "widget_tweaks",  # ADDITION (for stylizing form template tags)
+    "rest_framework",
+    "rest_framework.authtoken",
+    "widget_tweaks",  # for prettier forms (used in templates/generic_form.html)
     # Local apps
     # ADD local apps here (like in the future we will add 'tweets')
     "dwitter.apps.accounts",  # ADDITION
@@ -143,3 +144,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ADDITION: Rest Framework settings (we will add them later)
+CORS_ALLOW_ALL_ORIGINS = True # allow all origins for now (not recommended for production)
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication", # for viewing the browsable API in the browser
+        "rest_framework.authentication.TokenAuthentication", # for using the API with a token
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5
+}

@@ -53,6 +53,7 @@ from .forms import TweetForm  # We import the TweetForm form
 from django.shortcuts import (
     get_object_or_404,
 )  # We use this function to get a tweet object from the database, or return a 404 error if the tweet does not exist
+
 # see https://docs.djangoproject.com/en/4.1/topics/http/shortcuts/#get-object-or-404
 from django.utils.decorators import method_decorator
 
@@ -61,7 +62,7 @@ from django.utils.decorators import method_decorator
 # We can do this by using the method_decorator function from django.utils.decorators
 # and we should decorate the dispatch method of the class so that the decorator is applied to all the methods in the class
 # ADDITION: decorate the class with the login_required decorator and redirect to the login page if the user is not logged in
-@method_decorator(login_required(login_url=reverse_lazy("login")), name='dispatch')
+@method_decorator(login_required(login_url=reverse_lazy("login")), name="dispatch")
 class TweetsListView(ListView):
     # We specify the model we want to use to get the list of objects
     model = Tweet
@@ -113,7 +114,7 @@ class TweetCreateView(FormView):
         # you should set context["form"].fields["reply_to"].initial to the value of the "reply_to" GET parameter
         if self.request.GET.get("reply_to"):
             context["form"].fields["reply_to"].initial = self.request.GET.get("reply_to")
-        
+
         # To customize the title of the form, we pass the title to the template as a context variable
         if self.request.GET.get("reply_to"):
             context["form_header"] = "Reply to tweet"
@@ -126,13 +127,12 @@ class TweetCreateView(FormView):
         return context
 
     # ADDITION: override the form_valid method to handle the form submission (i.e. create a new tweet)
-    # form_valid gets called when the form is submitted and is valid therefore if 
+    # form_valid gets called when the form is submitted and is valid therefore if
     # you wish to create a new tweet on succsessful form submission you should do it here
     # In the generic form view, if the underlying form handles save() correctly,
     # it automatically gets called in form_valid, but because we are using a custom form which does not handle save() correctly,
     # (i.e. it does not save the tweet to the database, because it doesn't have the user field), we need to call save() manually in form_valid
     # see https://docs.djangoproject.com/en/4.1/topics/class-based-views/generic-editing/#formview-objects
-
 
     def form_valid(self, form):
         # we override the form_valid method to handle the form submission
@@ -141,9 +141,75 @@ class TweetCreateView(FormView):
         # we set the user of the tweet to the current user
         # we save the tweet to the database
         # we redirect the user to the index page
-        # ADDITION: create a new tweet object using the form data, set the user of the tweet to the current user, and 
+        # ADDITION: create a new tweet object using the form data, set the user of the tweet to the current user, and
         # save the tweet to the database and redirect the user to the index page
         tweet = form.save(commit=False)
-        tweet.user = self.request.user # set the user of the tweet to the current user
+        tweet.user = self.request.user  # set the user of the tweet to the current user
         tweet.save()
         return super().form_valid(form)
+
+
+# Session 3: Tweet APIs
+# In this session, we will create APIs to get the list of tweets and to create a new tweet
+
+import rest_framework
+from rest_framework import viewsets as drf_viewsets
+from rest_framework import mixins as drf_mixins
+from rest_framework import pagination as drf_pagination
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from . import serializers, permissions
+import django
+from django.contrib.auth import get_user_model
+
+
+class TweetsAPIViewSet(
+    drf_viewsets.GenericViewSet,
+    drf_mixins.ListModelMixin,
+    drf_mixins.DestroyModelMixin,  # for deleting tweets
+    drf_mixins.CreateModelMixin,  # for model creation (tweet)
+    drf_mixins.RetrieveModelMixin,  # for model retrieval (view tweet)
+):
+    # the docstring is used to generate the documentation for the API
+    """
+    API for user information management and retrieval.
+
+    * **List** [ [index](/api/tweets/) | `GET`, `POST` ]: List all tweets (paginated), or create a new tweet.
+    * **Retrieve Tweet** [ `<pk>` | `GET`, `DELETE`]: obtain tweet information or delete tweet (by looking up pk)
+    """
+
+    authentication_classes = [
+        rest_framework.authentication.SessionAuthentication,
+        rest_framework.authentication.TokenAuthentication,
+    ]  # the authentication classes to use for this viewset
+
+    # similar to the queryset attribute in the TweetListView class, we use the queryset attribute to specify the queryset to use for this viewset
+    # we don't want to return tweets that are replies, so we filter out tweets that are replies
+    # ADDITION: filter out tweets that are replies (i.e. tweets with reply_to=None)
+    queryset = Tweet.objects.all().filter(reply_to=None)  # the queryset to use to look up tweets with no replies
+
+    # pagination could be handled globally in the settings.py file, we can also override the pagination class specific viewsets
+    # see https://www.django-rest-framework.org/api-guide/pagination/#setting-the-pagination-style for more information
+    # see settings.py for global pagination settings used in this project
+
+    # we override this method to use different serializers for different actions
+    def get_serializer_class(self):
+        # ADDITION: use the TweetCreateSerializer for the create action and the TweetSerializer for all other actions
+        if self.action == "create":
+            return serializers.TweetCreateSerializer
+        return serializers.TweetViewSerializer
+
+    # we override this function to use different permissions for different actions
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["destroy"]:  # if the action is update/partial_update (profile update)
+            # ADDIITON: use the IsAuthenticated permission class in addition to the IsOwnerOrAdmin permission class
+            # so that only the owner of the tweet or an admin can delete the tweet
+            # set the permission_list to [ rest_framework.permissions.IsAuthenticated, permissions.IsOwnerOrAdmin]
+            permission_list = [permissions.IsOwnerOrAdmin, rest_framework.permissions.IsAuthenticated]
+        else:
+            # ADDITION: set the permission_list to [rest_framework.permissions.IsAuthenticated] so that only authenticated
+            # users can access the rest of the tweet apis
+            permission_list = [rest_framework.permissions.IsAuthenticated]
+        return [permission() for permission in permission_list]

@@ -71,3 +71,102 @@ class SingUpFormView(FormView):
         user = form.save(commit=True)
         # we then call the form_valid method of the FormView class to handle the rest (redirecting the user)
         return super().form_valid(form)
+
+
+# Session 3: Addin Accounts APIs with Django REST Framework
+import rest_framework
+from rest_framework import viewsets as drf_viewsets
+from rest_framework import mixins as drf_mixins
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from . import serializers, permissions
+import django
+from django.contrib.auth import get_user_model
+
+
+class AccountsAPIViewSet(
+    drf_viewsets.GenericViewSet,
+    drf_mixins.CreateModelMixin,  # for model creation (signup)
+    drf_mixins.RetrieveModelMixin,  # for model retrieval (profile)
+    drf_mixins.UpdateModelMixin,  # for model update (profile update)
+):
+    # the docstring is used to generate the documentation for the API
+    """
+    API for user information management and retrieval
+
+    * **Login** [ [login](/api/accounts/login/) | `POST` ]: obtain a valid authentication token by sending valid credentials
+    * **Logout** [ [logout](/api/accounts/logout/) | `POST`]: invalidate currently owned authentication token
+    * **Retrieve User** [ `<username>` | `GET`, `PUT` ]: obtain user information (by looking up username) or update user information
+    """
+
+    lookup_field = "username"  # the field to use to look up the user (in this case, the username)
+    lookup_url_kwarg = "username"  # the url parameter to use to look up the user (in this case, the username)
+    authentication_classes = [
+        rest_framework.authentication.SessionAuthentication,
+        rest_framework.authentication.TokenAuthentication,
+    ]  # the authentication classes to use for this viewset
+
+    queryset = get_user_model().objects.all()  # the queryset to use to look up the user
+
+    # the following function is used to get the serializer class to use for the view
+    # we override it to use different serializers for different rest_framework.decorators.actions
+    def get_serializer_class(self):
+        if self.action == "create":  # if the action is create (signup)
+            return serializers.SignupSerializer
+        if self.action in ["retrieve", "update"]:
+            if self.request.user.is_staff or (
+                "username" in self.request.parser_context["kwargs"]  # if retrieving/updating a specific user
+                and self.request.user.username == self.request.parser_context["kwargs"]["username"]
+            ):
+                # if the user is staff or the user is looking up their own profile
+                # they should be able to see and edit everything
+                return serializers.UserSerializer
+            else:
+                # otherwise, they should only be able to see and edit their own profile
+                return serializers.RestrictedUserSerializer
+        elif self.action == "login":
+            return AuthTokenSerializer
+        elif self.action == "logout":
+            # we don't need a serializer for the logout action
+            # (we just need to invalidate the token, and send a success response)
+            # so it suffices to return a dummy serializer (base django rest framework serializer)
+            return rest_framework.serializers.Serializer
+        return serializers.UserSerializer
+
+    # we override this function to use different permissions for different actions
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["create", "login"]:
+            # if the action is create (signup) or login (obtain token) then we don't need any permissions
+            permission_list = [rest_framework.permissions.AllowAny]
+        elif self.action in ["update", "partial_update"]:  # if the action is update/partial_update (profile update)
+            permission_list = [permissions.IsSelfOrAdmin, rest_framework.permissions.IsAuthenticated]
+        elif self.action in ["retrieve", "logout"]:
+            permission_list = [rest_framework.permissions.IsAuthenticated]
+        else:
+            permission_list = [rest_framework.permissions.AllowAny]
+        return [permission() for permission in permission_list]
+
+    @rest_framework.decorators.action(methods=["POST"], detail=False)
+    def login(self, request, format=None):
+        """
+        Obtain an authentication token by providing valid credentials.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        token, created = rest_framework.authtoken.models.Token.objects.get_or_create(user=user)
+        return rest_framework.response.Response({"token": token.key})
+
+    @rest_framework.decorators.action(methods=["POST"], detail=False)
+    def logout(self, request, format=None):
+        """
+        Invalidate the currently owned authentication token.
+
+        **Permissions** :
+
+        * _Authentication_ is required
+        """
+        django.shortcuts.get_object_or_404(rest_framework.authtoken.models.Token, user=request.user).delete()
+        return rest_framework.response.Response(status=rest_framework.status.HTTP_202_ACCEPTED)

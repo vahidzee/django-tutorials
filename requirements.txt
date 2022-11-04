@@ -1,2 +1,4 @@
-django-widget-tweaks
 django
+django-widget-tweaks
+djangorestframework
+Markdown # for the Markdown support (pretty printing of browsable API documentations)

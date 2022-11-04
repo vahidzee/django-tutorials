@@ -38,12 +38,35 @@ from dwitter.apps.tweets import views as tweets_views  # ADDITION
 #     path("admin/", admin.site.urls),
 # admin configurations are definend in dwitter/apps/*/admin.py files
 
+# Session 3: adding a base router for the APIs and connecting APIs to our django app urls (at /api/)
+from rest_framework import routers
+
+# Routers provide an easy way of automatically determining the URL conf.
+# we can use the DefaultRouter to create a default router that will register all our viewsets with it
+# see https://www.django-rest-framework.org/api-guide/routers/#defaultrouter for more info
+#
+router = routers.DefaultRouter()
+router.get_api_root_view().cls.__name__ = (
+    "Dwitter API"  # customize the name of the root view (shown in the browsable API)
+)
+router.get_api_root_view().cls.__doc__ = "Fully browsable API for the Dwitter project."  # customize the description of the root view (shown in the browsable API)
+
+# ADDITION: connect the rest viewsets to the router using router.register
+router.register("accounts", accounts_views.AccountsAPIViewSet, basename="accounts")
+router.register("tweets", tweets_views.TweetsAPIViewSet, basename="tweets")
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     # user urls
     path("accounts/", include("django.contrib.auth.urls")),  # ADDITION: include the default auth urls
     path("accounts/signup/", accounts_views.SingUpFormView.as_view(), name="signup"),  # ADDITION: add the signup url
+    # tweet urls
     path("", tweets_views.TweetsListView.as_view(), name="index"),  # ADDITION: add the index url
     path("tweet/", tweets_views.TweetCreateView.as_view(), name="tweet"),  # ADDITION: add the tweet url
+    # rest framework urls
+    path(
+        "api/auth/", include("rest_framework.urls", namespace="rest_framework")
+    ),  # ADDITION: include the rest framework urls (e.g.: for session auth in browsable api)
+    # api urls
+    path("api/", include(router.urls)),  # ADDITION: include the api urls
 ]
-
