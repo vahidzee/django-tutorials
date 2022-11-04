@@ -13,7 +13,9 @@ During the meetings with tweeter clients and engineers, we have decided apon the
 
 ## Part 0: Setup
 
-After cloning the repository, make sure you have everything setup properly (see [previous week's README](./Session-1.md) for instructions). Make sure you have everything installed `pip install -r requirements.txt` and that you are able to run the development server `python manage.py runserver`.
+After cloning the repository, make sure you have everything setup properly (see [previous week's README](./Session-1.md) for instructions). Make sure you have everything installed `pip install -r requirements.txt` and that you are able to run the development server `python manage.py runserver`. 
+
+If you are cloning the codes and not just applying the changes to the previous session's codes, you will need to create a new database (apply migrations) `python manage.py migrate`. (see [previous week's README](../week-1//README.md) for instructions).
 
 Our apps are already setup in our `settings.py` file, so we don't need to do anything there. We will be working in the `tweets` app, so make sure you are in the `tweets` directory. (We don't bother working with URLs in this tutorial, we did that last week).
 
